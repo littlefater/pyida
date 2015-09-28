@@ -33,6 +33,7 @@ for line in open(apifile, 'rb'):
 for addr, name in api_dict.items():
     print hex(addr), name
     i = 0
+    MakeUnknown(addr, 4, 0)
     while False == MakeName(addr, name):
         name = name + '_' + str(i)
         i += 1
