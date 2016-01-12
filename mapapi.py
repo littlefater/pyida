@@ -1,7 +1,7 @@
 """
-Map the APIs from dynamic debugging into IDB file.
+Map the APIs from dynamic debugging result to IDB file.
 
-Example of input file (api.txt):
+Example of input file (copied from OllyDgb memory window):
 005CB130  7C8316B7  kernel32.GetComputerNameW
 005CB134  7C812DE6  kernel32.GetSystemInfo
 005CB138  7C8612D7  kernel32.GetLogicalDriveStringsW
@@ -19,25 +19,25 @@ Example of input file (api.txt):
 import re
 from idaapi import *
 
+apifile = AskFile(0, 'api.txt', 'Please select the API file')
 
-apifile = 'api.txt'
-api_dict = dict()
+if apifile is not None:
+    api_dict = dict()
+    for line in open(apifile, 'rb'):
+        m = re.search('([0-9a-zA-Z]+).*\.(\w+)', line)
+        if m is not None:
+            api_addr = int(m.group(1), 16)
+            api_name = m.group(2)
+            api_dict[api_addr] = api_name
 
-for line in open(apifile, 'rb'):
-    m = re.search('([0-9a-zA-Z]+).*\.(\w+)', line)
-    if m is not None:
-        api_addr = int(m.group(1), 16)
-        api_name = m.group(2)
-        api_dict[api_addr] = api_name
-
-for addr, name in api_dict.items():
-    print hex(addr), name
-    i = 0
-    MakeUnknown(addr, 4, 0)
-    while False == MakeName(addr, name):
-        name = name + '_' + str(i)
-        i += 1
-        if i == 3:
-            print 'Failed to rename address:', hex(addr) 
-            break
+    for addr, name in api_dict.items():
+        print hex(addr), name
+        i = 0
+        while False == MakeName(addr, name):
+            name = name + '_' + str(i)
+            i += 1
+            if i == 3:
+                break
+else:
+    print 'No API file selected!'
 
